@@ -1,0 +1,19 @@
+schema_version: 1
+
+retrieval:
+  lexical:
+    enabled: true
+    engine: javascript-bm25
+    limit: 20
+
+  semantic:
+    enabled: false
+    limit: 0
+
+  fusion:
+    method: null
+    rrf_k: null
+
+  output:
+    default_top_k: 6
+    excerpt_chars: 900

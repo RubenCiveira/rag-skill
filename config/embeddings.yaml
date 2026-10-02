@@ -1,0 +1,12 @@
+schema_version: 1
+
+embedding:
+  enabled: false
+  provider: null
+  model: null
+  dimensions: null
+  normalized: null
+
+index:
+  distance: null
+  storage: json

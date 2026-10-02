@@ -1,0 +1,22 @@
+schema_version: 1
+
+extraction:
+  pdf_text_backend: pdf-parse
+  ocr_enabled: false
+  ocr_backend: null
+  min_page_text_chars_before_ocr: 80
+
+normalization:
+  collapse_whitespace: true
+  preserve_headings: true
+  remove_repeated_headers: false
+
+chunking:
+  strategy: markdown-sections
+  target_words: 450
+  max_words: 700
+  overlap_words: 60
+  prefer_boundaries:
+    - heading
+    - paragraph
+  include_breadcrumb_in_index_text: true
