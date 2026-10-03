@@ -3,7 +3,10 @@ schema_version: 1
 extraction:
   pdf_text_backend: pdf-parse
   ocr_enabled: false
-  ocr_backend: null
+  ocr_backend: tesseract-native
+  ocr_pdf_renderer: poppler
+  ocr_languages:
+    - eng
   min_page_text_chars_before_ocr: 80
 
 normalization:

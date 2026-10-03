@@ -8,9 +8,9 @@ The intended model is:
 ~/.rag-corpus/
   config.json
   corpora/
-    literatura/
-    programacion/
-    psicologia/
+    literature/
+    programming/
+    psychology/
 ```
 
 Projects do not own the corpora. Projects register the MCP command and query whichever global corpus is relevant.
@@ -36,10 +36,10 @@ The npm package runs directly on Node.js. It does not require Python.
 
 ```bash
 rag-corpus init
-rag-corpus create psicologia --description "Corpus sobre psicologia, cognicion, aprendizaje y conducta." --tag psychology --tag learning
-rag-corpus add psicologia ./books --recursive
-rag-corpus search psicologia "memoria de trabajo y aprendizaje" --top 5
-rag-corpus describe psicologia
+rag-corpus create psychology --description "Corpus about psychology, cognition, learning, and behavior." --tag psychology --tag learning
+rag-corpus add psychology ./books --recursive
+rag-corpus search psychology "working memory and learning" --top 5
+rag-corpus describe psychology
 ```
 
 PDF ingestion uses the optional npm dependency `pdf-parse`. Markdown and text ingestion work with Node.js built-ins only.
@@ -66,6 +66,8 @@ rag-corpus models set <task> --provider <provider> --model <model> [--corpus nam
 rag-corpus models run <task> --text "..." [--corpus name]
 rag-corpus ollama status
 rag-corpus ollama setup --task translation --model qwen2.5:7b --start --pull
+rag-corpus ocr status
+rag-corpus ocr setup --provider tesseract-native --languages eng,spa
 ```
 
 Corpus names are global under `~/.rag-corpus/corpora/`. Set `RAG_CORPUS_HOME` or pass `--home` to use a different location.
@@ -86,6 +88,7 @@ Global examples:
 ```bash
 rag-corpus models set translation --provider ollama --model qwen2.5:7b --base-url http://localhost:11434
 rag-corpus models set categorization --provider ollama --model llama3.2:3b
+rag-corpus models set embeddings --provider transformers --model Xenova/paraphrase-multilingual-MiniLM-L12-v2 --dimensions 384
 rag-corpus models set embeddings --provider openai-compatible --model text-embedding-3-small --base-url https://api.openai.com/v1 --api-key-env OPENAI_API_KEY --dimensions 1536
 rag-corpus models show
 ```
@@ -94,20 +97,30 @@ Test a configured task:
 
 ```bash
 rag-corpus models run translation --text "Task reassignment requires monitoring stalled executors."
-rag-corpus models run categorization --corpus psicologia --text "Learning objectives and formative feedback improve tutoring workflows."
+rag-corpus models run categorization --corpus psychology --text "Learning objectives and formative feedback improve tutoring workflows."
 rag-corpus models run embeddings --text "agent coordination"
 ```
 
 Corpus-specific overrides:
 
 ```bash
-rag-corpus models set translation --corpus psicologia --provider ollama --model aya:8b
-rag-corpus models show --corpus psicologia
+rag-corpus models set translation --corpus psychology --provider ollama --model aya:8b
+rag-corpus models show --corpus psychology
 ```
 
 API keys are not stored directly. Store only the environment variable name with `--api-key-env`.
 
-Model execution uses the effective configuration for the requested task: corpus override first, then global configuration. Supported providers currently implemented are `ollama`, `openai`, and `openai-compatible`.
+Model execution uses the effective configuration for the requested task: corpus override first, then global configuration. Supported providers currently implemented are `ollama`, `openai`, `openai-compatible`, and `transformers` for local embeddings.
+
+For local multilingual embeddings without Ollama, use Transformers.js:
+
+```bash
+npm install @xenova/transformers
+rag-corpus models set embeddings --provider transformers --model Xenova/paraphrase-multilingual-MiniLM-L12-v2 --dimensions 384
+rag-corpus models run embeddings --text "stalled task reassignment"
+```
+
+The model is downloaded and cached by Transformers.js on first use. This avoids requiring Python or an Ollama service for multilingual embeddings.
 
 ## Local Ollama
 
@@ -148,10 +161,62 @@ Configure a task to use local Ollama:
 
 ```bash
 rag-corpus ollama setup --task translation --model qwen2.5:7b --start --pull
-rag-corpus ollama setup --task categorization --corpus psicologia --model llama3.2:3b
+rag-corpus ollama setup --task categorization --corpus psychology --model llama3.2:3b
 ```
 
 `--start` attempts to run `ollama serve` if the service is not already responding. `--pull` downloads the model before writing the `rag-corpus` model configuration.
+
+## OCR For Scanned PDFs
+
+PDF text extraction uses `pdf-parse` for embedded text. If a PDF appears to contain little or no embedded text, `rag-corpus` reports that OCR is required and prints platform-specific installation commands for native tools.
+
+Check OCR status:
+
+```bash
+rag-corpus ocr status
+```
+
+Print host-specific installation commands:
+
+```bash
+rag-corpus ocr install
+```
+
+Configure native Tesseract OCR:
+
+```bash
+rag-corpus ocr setup --provider tesseract-native --languages eng,spa --renderer poppler
+```
+
+Native OCR expects:
+
+- `tesseract` for OCR.
+- language packs such as `eng` and `spa`.
+- `pdftoppm` from Poppler to render scanned PDF pages to images.
+
+Typical macOS install commands:
+
+```bash
+brew install tesseract
+brew install tesseract-lang
+brew install poppler
+```
+
+Typical Debian/Ubuntu install commands:
+
+```bash
+sudo apt-get update
+sudo apt-get install -y tesseract-ocr tesseract-ocr-eng tesseract-ocr-spa poppler-utils
+```
+
+Typical Windows Chocolatey install commands:
+
+```powershell
+choco install tesseract
+choco install poppler
+```
+
+OCR execution for scanned PDFs is intentionally staged behind this configuration/status layer; scanned PDFs are detected and reported clearly instead of being indexed as empty documents.
 
 ## MCP
 
@@ -160,7 +225,7 @@ rag-corpus ollama setup --task categorization --corpus psicologia --model llama3
 Run the stdio MCP command manually for a specific corpus:
 
 ```bash
-rag-corpus mcp stdio psicologia
+rag-corpus mcp stdio psychology
 ```
 
 The corpus name is required for the MCP command to be useful. If it is omitted, the MCP command reports that no corpus has been registered and exposes no usable tools.
@@ -168,13 +233,13 @@ The corpus name is required for the MCP command to be useful. If it is omitted, 
 Print a generic MCP config snippet:
 
 ```bash
-rag-corpus mcp config psicologia
+rag-corpus mcp config psychology
 ```
 
 Register the command in a project `.mcp.json`:
 
 ```bash
-rag-corpus mcp register psicologia --project .
+rag-corpus mcp register psychology --project .
 ```
 
 Each registered MCP command is bound to one corpus and currently exposes read-only tools:

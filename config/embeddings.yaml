@@ -1,12 +1,12 @@
 schema_version: 1
 
 embedding:
-  enabled: false
-  provider: null
-  model: null
-  dimensions: null
-  normalized: null
+  enabled: true
+  provider: transformers
+  model: Xenova/paraphrase-multilingual-MiniLM-L12-v2
+  dimensions: 384
+  normalized: true
 
 index:
-  distance: null
+  distance: cosine
   storage: json
