@@ -1,19 +1,29 @@
 schema_version: 1
 
 retrieval:
+  primary: semantic-cosine
+
   lexical:
     enabled: true
     engine: javascript-bm25
     limit: 20
 
   semantic:
-    enabled: false
-    limit: 0
+    enabled: true
+    engine: local-transformers
+    distance: cosine
+    limit: 20
 
   fusion:
-    method: null
+    method: fallback
     rrf_k: null
 
   output:
     default_top_k: 6
     excerpt_chars: 900
+
+storage:
+  engine: sqlite
+  default_driver: node:sqlite
+  native_driver: better-sqlite3
+  database: index/corpus.sqlite
